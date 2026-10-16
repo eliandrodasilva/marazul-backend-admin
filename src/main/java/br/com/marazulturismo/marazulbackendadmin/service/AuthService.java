@@ -137,14 +137,13 @@ public class AuthService {
     });
     }
 
-// TODO: substitiuir pelo endpoint correto com a tela de definir senha
     private String buildUrl(String token){
         String baseUrl = definePasswordUrl;
         if(baseUrl.endsWith("/")) {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }
 
-        return baseUrl + "/define-password?token=" + token;
+        return baseUrl + "/redefinir-senha?token=" + token;
     }
 
     private static CNH buildCnh(RegisterRequestDTO dto) {

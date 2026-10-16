@@ -77,12 +77,11 @@ public class PasswordResetService {
         return token;
     }
 
-    // TODO: substitiuir pelo endpoint correto com a tela de resetar senha
     private String buildUrl(String token){
         String baseUrl = resetUrl;
         if(baseUrl.endsWith("/")) {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }
-        return baseUrl + "/reset-password?token=" + token;
+        return baseUrl + "/redefinir-senha?token=" + token;
     }
 }
