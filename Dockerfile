@@ -5,6 +5,10 @@ WORKDIR /app
 # Copia arquivos do Maven Wrapper e dependências
 COPY pom.xml mvnw ./
 COPY .mvn .mvn
+
+# Corrige quebras de linha do Windows (CRLF) e dá permissão de execução ao mvnw
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
+
 RUN ./mvnw dependency:go-offline -B
 
 # Copia o código fonte e gera o jar (pulando os testes para o deploy ser rápido)
