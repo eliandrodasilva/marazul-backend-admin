@@ -13,8 +13,10 @@ import br.com.marazulturismo.marazulbackendadmin.model.Collaborator;
 import br.com.marazulturismo.marazulbackendadmin.model.Profile;
 import br.com.marazulturismo.marazulbackendadmin.repository.CollaboratorRepository;
 import br.com.marazulturismo.marazulbackendadmin.repository.ProfileRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.context.Context;
 
 import java.util.Date;
 import java.util.List;
@@ -24,10 +26,21 @@ public class CollaboratorService {
 
     private final CollaboratorRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final EmailSenderService emailSenderService;
+    private final PasswordResetService passwordResetService;
+    private final String definePasswordUrl;
 
-    public CollaboratorService(CollaboratorRepository userRepository, ProfileRepository profileRepository) {
+    public CollaboratorService(
+            CollaboratorRepository userRepository,
+            ProfileRepository profileRepository,
+            EmailSenderService emailSenderService,
+            PasswordResetService passwordResetService,
+            @Value("${app.password-define.base-url}") String definePasswordUrl) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
+        this.emailSenderService = emailSenderService;
+        this.passwordResetService = passwordResetService;
+        this.definePasswordUrl = definePasswordUrl;
     }
 
     @Transactional(readOnly = true)
@@ -67,7 +80,27 @@ public class CollaboratorService {
         );
         applyStatus(employee, dto.status());
 
-        return EmployeeResponseDTO.fromEntity(userRepository.save(employee));
+        Collaborator saved = userRepository.save(employee);
+
+        if (Boolean.TRUE.equals(saved.getIsUser()) && saved.getEmail() != null && !saved.getEmail().isBlank()) {
+            String token = passwordResetService.createResetToken(saved);
+            String baseUrl = definePasswordUrl.endsWith("/")
+                    ? definePasswordUrl.substring(0, definePasswordUrl.length() - 1)
+                    : definePasswordUrl;
+            String redefineLink = baseUrl + "/redefinir-senha?token=" + token;
+
+            Context context = new Context();
+            context.setVariable("name", saved.getName());
+            context.setVariable("link", redefineLink);
+            emailSenderService.sendEmailTemplate(
+                    saved.getEmail(),
+                    "Bem-vindo à Marazul Turismo - Defina sua senha",
+                    "newRegister",
+                    context
+            );
+        }
+
+        return EmployeeResponseDTO.fromEntity(saved);
     }
 
     @Transactional

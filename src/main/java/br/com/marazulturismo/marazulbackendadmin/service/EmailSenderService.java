@@ -49,7 +49,9 @@ public class EmailSenderService {
             messageHelper.setSubject(subject);
             messageHelper.setText(templateString, true);
             mailSender.send(message);
-        }catch (MessagingException e){
+            System.out.println("=== EMAIL ENVIADO COM SUCESSO PARA: " + recipient + " ===");
+        }catch (Exception e){
+            System.err.println("=== ERRO AO ENVIAR EMAIL PARA " + recipient + ": " + e.getMessage() + " ===");
             e.printStackTrace();
         }
     }
